@@ -1,16 +1,21 @@
 import React from 'react';
+import { List } from 'semantic-ui-react'
+import './cards.css'
 
-export const Card = ({ listOfTodos })=> {
+export const Card = ({ listOfStocks })=> {
   return (
     <>
-      {listOfTodos.map(todo => {
-        return(
-          <ul key={todo.index}>
-            <li>{todo.name}</li>
-          </ul>
-        )
-      })}
-      <p>This comes from card,js in components/ that is called from TodoPage.js in pages/ that is rendered in app.js</p>
+      <div className='cards'>
+        <div className='cards__container'>
+          <div className='cards__wrapper'>
+
+            // <List className='cards__item'>
+              {listOfStocks.map(stocks => (<li className='cards__item'>{stocks}</li>))}
+            // </List>
+
+          </div>
+        </div>
+      </div>
     </>
   )
 }

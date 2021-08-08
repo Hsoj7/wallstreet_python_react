@@ -42,6 +42,12 @@ From files I created, RedditScraper.py needs to import praw
 Interpreter.py needs to import yfinance
   pip3 install yfinance
 
+Installed semantic-ui-react for the list component
+  yarn add semantic-ui-react semantic-ui-css
+
+Installed material-ui/core to get simple cards
+  yarn add @material-ui/core
+
 
 To run the project on bootup, cd into the api directory. Open 2 terminal windows
 from this folder. In the first terminal run

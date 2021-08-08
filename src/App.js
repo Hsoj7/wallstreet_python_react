@@ -1,13 +1,12 @@
 import React from 'react';
-import logo from './logo.svg'
 import './App.css';
-import { TodoPage } from './Pages/TodoPage'
+import { TopStocksPage } from './Pages/TopStocksPage'
 // import { Card } from './Components/card'
 
 function App() {
   return (
     <div className="App">
-        <TodoPage/>
+        <TopStocksPage/>
     </div>
   );
 }
