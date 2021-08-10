@@ -11,8 +11,8 @@ def index():
     symbolList = getCommonNames()
     jsonStr = json.dumps(symbolList)
     # str = convert(symbolList)
-    print("Type:")
-    print(type(jsonStr))
+    # print("Type:")
+    # print(type(jsonStr))
     # jsonObj = json.loads(jsonStr)
 
     return jsonStr
