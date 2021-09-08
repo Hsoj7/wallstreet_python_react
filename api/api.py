@@ -1,5 +1,6 @@
 from flask import Flask
 from Interpreter import runRedditScraper, getCommonNames
+from getStockPrice import getStockPrice
 import json
 
 app = Flask(__name__)
@@ -17,13 +18,18 @@ def index():
 
 @app.route('/getPrices', methods=['GET'])
 def index1():
-    stringList = str(symbolList)
-    print("getPrices " + stringList)
+    print("ENTERED /getPrices")
+    priceList = []
 
-    jsonStr = json.dumps(symbolList)
+    for symbol in symbolList:
+        print("Getting price for: " + symbol)
+        price = getStockPrice(symbol)
+        priceList.append(price)
+
+    jsonStr = json.dumps(priceList)
 
     # Now create a new file called getStockData.py and move the getStockData function there.
-    # print("IN GET PRICES " + jsonStr)
+    print("IN GET PRICES " + jsonStr)
     return jsonStr
 
 if __name__ == '__main__':

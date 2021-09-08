@@ -31,11 +31,11 @@ class RedditScraper:
 
         # .submission is used for an actual URL, .subreddit is used for a specific subreddit
         submission = reddit.submission(url=self.url)
-        print("TESTING: " + self.filenameStr)
+        print("Data stored in: " + self.filenameStr)
         file = open(self.filenameStr, 'a')
 
         # Loop through comments retreived
-        submission.comments.replace_more(limit=2)
+        submission.comments.replace_more(limit=10)
         for comment in submission.comments.list():
             # Filters out comments from bots
             if not "bot" in comment.body:
