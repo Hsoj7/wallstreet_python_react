@@ -79,8 +79,51 @@ def getStockPrice(sym):
     #     return 0.0
 
 
+def getStockPercentChange(sym):
+
+    stock = yf.Ticker(sym)
+    todays_data = stock.history(period='1d')
+    formatted_data = "{:.2f}".format(todays_data['Close'][0])
+
+    try:
+        end = datetime.today().strftime('%Y-%m-%d')
+        start = datetime.today() - timedelta(days=1)
+        start = start.strftime('%Y-%m-%d')
+
+        day = int(end[8:10])
+        day -= 1
+        day = str("%02.0f" % day)
+        print("day = " + day)
+        start = datetime.today().strftime('%Y-%m-%d')
+        start = start[0:8]
+        start = start + day
+
+
+        close = stock.history(start=start, end=end, interval='1d')
+
+        temp = float(close['Close'])
+        formatted_close = "{:.2f}".format(temp)
+        # Calculate the +/- percentage
+        difference = ((float(formatted_data) - float(formatted_close)) / float(formatted_data)) * 100
+        formatted_difference = "{:.2f}".format(difference)
+
+        if float(formatted_difference) > 0:
+            print("    Current: $" + str(formatted_data) + ", Daily Difference: +" + formatted_difference + "%")
+            return formatted_difference
+        else:
+            print("    Current: $" + str(formatted_data) + ", Daily Difference: " + formatted_difference + "%")
+            return formatted_difference
+
+    except:
+        print("Error, hit except in getStockPercentChange")
+        print("If this is printing, its probably a weekend, make a nested loop for start date")
+        return 0.0
+
+
 if __name__ == '__main__':
     #auto generates data[x].txt based on how many files are in the directory
     print("getStockPrice RAN MAIN")
     price = getStockPrice("TSLA")
-    print("getStockPrice.py main Returned: " + str(price))
+    print("getStockPrice main Returned: " + str(price))
+    percentChange = getStockPercentChange("TSLA")
+    print("getStockPercentChange main returned: " + str(percentChange))
