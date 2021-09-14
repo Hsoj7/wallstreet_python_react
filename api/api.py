@@ -10,8 +10,6 @@ symbolList = getCommonNames()
 
 @app.route('/getSymbols', methods=['GET'])
 def index():
-    print("getSymbols")
-
     jsonStr = json.dumps(symbolList)
 
     return jsonStr
@@ -35,7 +33,7 @@ def index2():
     percentList = []
 
     for symbol in symbolList:
-        print("Getting percentChange for: " + symbol)
+        # print("Getting percentChange for: " + symbol)
         try:
             percent = getStockPercentChange(symbol)
             percentList.append(percent)

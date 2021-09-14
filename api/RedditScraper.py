@@ -28,14 +28,16 @@ class RedditScraper:
     def scrape(self):
         # Create reddit bot instance
         reddit = praw.Reddit(client_id='4Xz6lwJfBY40bw', client_secret='EOU3YORDDveuWyh8Hz8bQbMqJWhc8A', user_agent='WallStreet Scraper')
-
+        # topbar = reddit.subreddit('wallstreetbets').widgets.topbar
+        # for bar in topbar:
+        #     print("bar = " + str(bar))
         # .submission is used for an actual URL, .subreddit is used for a specific subreddit
         submission = reddit.submission(url=self.url)
         print("Data stored in: " + self.filenameStr)
         file = open(self.filenameStr, 'a')
 
         # Loop through comments retreived
-        submission.comments.replace_more(limit=10)
+        submission.comments.replace_more(limit=2)
         for comment in submission.comments.list():
             # Filters out comments from bots
             if not "bot" in comment.body:

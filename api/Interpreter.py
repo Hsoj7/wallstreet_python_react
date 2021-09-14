@@ -19,6 +19,17 @@ import os, os.path
 from collections import Counter
 import re
 
+# WORK ON THIS IF YOU FIGURE OUT HOW TO SCRAPE THE DAILY DISCUSSION LINK
+# def getURL():
+#     discussionURL = "https://www.reddit.com/r/wallstreetbets/search?q=flair_name%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new"
+#     page = requests.get(discussionURL)
+#
+#     soup = BeautifulSoup(page.content, "html.parser")
+#     # print(page.text)
+#
+#     return "yes"
+
+
 # Function to instantiate the RedditScraper class and retrieve comments
 def runRedditScraper():
     # print("Enter link to the subreddit: ")
@@ -26,7 +37,7 @@ def runRedditScraper():
     # url = input()
 
     #Update this line with newest subreddit daily discussion link
-    url = "https://www.reddit.com/r/wallstreetbets/comments/pk7hl8/daily_discussion_thread_for_september_08_2021/"
+    url = "https://www.reddit.com/r/wallstreetbets/comments/pnzrg1/daily_discussion_thread_for_september_14_2021/"
 
     numFiles = len(os.listdir('./data_files'))
     numFiles = numFiles + 1
@@ -40,7 +51,7 @@ def runRedditScraper():
 
 # Function to display the most common stock symbols
 def getCommonNames():
-    print("Called getCommonNames GETTING CALLED TWICE, FIX")
+    # print("Called getCommonNames GETTING CALLED TWICE, FIX")
     numFiles = len(os.listdir('./data_files'))
     numFiles = numFiles
     filenameStr = "./data_files/data" + str(numFiles) + ".txt"
@@ -86,7 +97,7 @@ def getCommonNames():
                             # symbolClass = stockInfo(word, numbers[index])
                             # symbolList.append(symbolClass)
                             symbolList.append(word)
-                            print(str(numPrinted) + ": " + word + ", frequency: " + str(numbers[index]))
+                            # print(str(numPrinted) + ": " + word + ", frequency: " + str(numbers[index]))
                             NumSymbols += 1
         else:
             break
@@ -94,6 +105,7 @@ def getCommonNames():
 
     # for sym in symbolList:
     #     print("HERE " + sym.name)
+    print("Returned symbolList ")
     return symbolList
 
     # return list of stocks...
@@ -102,7 +114,9 @@ def getCommonNames():
 if __name__ == '__main__':
     #auto generates data[x].txt based on how many files are in the directory
     print("RAN MAIN")
-    numFiles = len(os.listdir('.')) - 4
-    filenameStr = "./data" + str(numFiles) + ".txt"
-    runRedditScraper()
-    getCommonNames()
+    # numFiles = len(os.listdir('.')) - 4
+    # filenameStr = "./data" + str(numFiles) + ".txt"
+    # runRedditScraper()
+    # getCommonNames()
+    myString = getURL()
+    print("getURL = " + myString)
