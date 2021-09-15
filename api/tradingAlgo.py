@@ -1,3 +1,4 @@
+import yfinance as yf
 
 
 def value(symbol):
@@ -22,12 +23,27 @@ def composite(symbol):
 def getMovingAverage(symbol):
     print("Moving Average 50 day / 200 day:")
 
-def getTradingRange(symbol):
-    print("Trading range for particular stock")
-    # for value, doing bottom price within the last year + top price within the last year / 2 should be accurate
-    # for growth, doing bottom price within the last year + top price within the last year * 0.66 should be accurate?
+# The mean reversion strategy says highs and lows of a stock are only temporary.
+# They will revert to their mean value from time to time
+def getMeanReversion(symbol):
+    print("Mean Reversion buy point for particular stock")
+    stock = yf.Ticker(symbol)
+    # Block to get daily high and daily low stock price
+    stockData = stock.history(period='1y', interval='1d')
+    # yearlyHigh = "{:.2f}".format(stock.info['fiftyTwoWeekHigh'])
+    # yearlyLow = "{:.2f}".format(stock.info['fiftyTwoWeekLow'])
+    # yearlyHigh = stockData['High']
+    # yearlyLow = stockData['Low']
+    yearlyHigh = stock.info['fiftyTwoWeekHigh']
+    yearlyLow = stock.info['fiftyTwoWeekLow']
+
+#   Just add yearly high and yearly low then divide by 2
+    meanReversion = (yearlyHigh + yearlyLow) / 2
+
+    return meanReversion
 
 # Main entry point
 if __name__ == '__main__':
     print("TradingAlgo.py main:")
-    print("Testing Growth")
+    response = getMeanReversion("TSLA")
+    print("/getMeanReversion returned: " + str(response))
