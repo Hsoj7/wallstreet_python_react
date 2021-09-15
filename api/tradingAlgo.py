@@ -1,49 +1,84 @@
 import yfinance as yf
 
+class tradingAlgo:
+    def __init__(self, symbol):
+        self.symbol = symbol
+        # print("INIT " + )
+        self.stock = yf.Ticker(self.symbol)
+        self.currentPrice = self.stock.history(period='1d')['Close'][0]
+        self.oneYearReturn = ((self.currentPrice / self.stock.history(period='1y')['Close'][0]) - 1) * 100
+        self.sixMonthReturn = ((self.currentPrice / self.stock.history(period='180d')['Close'][0]) - 1) * 100
+        self.threeMonthReturn = ((self.currentPrice / self.stock.history(period='90d')['Close'][0]) - 1) * 100
+        self.oneMonthReturn = ((self.currentPrice / self.stock.history(period='30d')['Close'][0]) - 1) * 100
+        self.fiveDayReturn = ((self.currentPrice / self.stock.history(period='5d')['Close'][0]) - 1) * 100
+        self.fiftyDayAverage = self.stock.history(period='50d')['Close']
+        self.twoHundredDayAverage = self.stock.history(period='200d')['Close']
 
-def value(symbol):
-    print("Value based algorithm")
+        # print("oneYearReturn = " + str(self.oneYearReturn))
 
-# get 1 year return, maybe a more recent price return too
-# figure out percentile calculation from the freecodecamp video
-# stock with the best 1 year, 6 month, 3 month and 1 month weighted average
-# should get a better score
-def momentum(symbol):
-    print("Momentum based algorithm")
+    def getSymbol(self):
+        return self.symbol
 
-# take into account 10 year tresury
-def growth(symbol):
-    print("Growth based algorithm")
+    def value(self):
+        print("Value based algorithm")
 
+    # get 1 year return, maybe a more recent price return too
+    # figure out percentile calculation from the freecodecamp video
+    # stock with the best 1 year, 6 month, 3 month and 1 month weighted average
+    # should get a better score
+    def momentumAlgo(self):
+        print("one year = " + str(self.oneYearReturn))
+        print("six month = " + str(self.sixMonthReturn))
+        print("three month = " + str(self.threeMonthReturn))
+        print("one month = " + str(self.oneMonthReturn))
+        print("five day = " + str(self.fiveDayReturn))
+        return 0.0
 
-def composite(symbol):
-    print("Composite of algorithms")
+    # take into account 10 year tresury
+    def growthAlgo(self):
+        print("Growth based algorithm")
 
-# Give a rating on how close the stock is to crossing the 200 day moving average
-def getMovingAverage(symbol):
-    print("Moving Average 50 day / 200 day:")
+    def composite(self):
+        print("Composite of algorithms")
 
-# The mean reversion strategy says highs and lows of a stock are only temporary.
-# They will revert to their mean value from time to time
-def getMeanReversion(symbol):
-    print("Mean Reversion buy point for particular stock")
-    stock = yf.Ticker(symbol)
-    # Block to get daily high and daily low stock price
-    stockData = stock.history(period='1y', interval='1d')
-    # yearlyHigh = "{:.2f}".format(stock.info['fiftyTwoWeekHigh'])
-    # yearlyLow = "{:.2f}".format(stock.info['fiftyTwoWeekLow'])
-    # yearlyHigh = stockData['High']
-    # yearlyLow = stockData['Low']
-    yearlyHigh = stock.info['fiftyTwoWeekHigh']
-    yearlyLow = stock.info['fiftyTwoWeekLow']
+    # Give a rating on how close the stock is to crossing the 200 day moving average
+    def getMovingAverageGap(self):
+        avgFifty = sum(self.fiftyDayAverage) / len(self.fiftyDayAverage)
+        avgtwoHundred = sum(self.twoHundredDayAverage) / len(self.twoHundredDayAverage)
 
-#   Just add yearly high and yearly low then divide by 2
-    meanReversion = (yearlyHigh + yearlyLow) / 2
+        percentDiff = ((avgFifty / avgtwoHundred) - 1) * 100
 
-    return meanReversion
+        return percentDiff
+
+    # The mean reversion strategy says highs and lows of a stock are only temporary.
+    # They will revert to their mean value from time to time
+    def getMeanReversion(self):
+        # Block to get daily high and daily low stock price
+        yearlyHigh = self.stock.info['fiftyTwoWeekHigh']
+        yearlyLow = self.stock.info['fiftyTwoWeekLow']
+
+    #   Just add yearly high and yearly low then divide by 2
+        meanReversion = (yearlyHigh + yearlyLow) / 2
+
+        return meanReversion
 
 # Main entry point
 if __name__ == '__main__':
-    print("TradingAlgo.py main:")
-    response = getMeanReversion("TSLA")
-    print("/getMeanReversion returned: " + str(response))
+    algo = tradingAlgo("TSLA")
+    print("TradingAlgo.py main. Testing: " + str(algo.getSymbol()))
+
+    # print("Testing Mean Reversion:")
+    # meanReversion = algo.getMeanReversion()
+    # print("/getMeanReversion returned: " + str(meanReversion))
+
+    # print("Testing Momentum Algo:")
+    # momentum = algo.momentumAlgo()
+    # print("/momentumAlgo returned: " + str(momentum))
+
+    print("Testing 50day / 200day:")
+    fiftyDay = algo.getMovingAverageGap()
+    formatFiftyDay = "{:.5f}".format(fiftyDay)
+    if fiftyDay > 0:
+        print("/getMovingAverageGap returned: +" + str(formatFiftyDay) +"%")
+    else:
+        print("/getMovingAverageGap returned: -" + str(formatFiftyDay) +"%")
