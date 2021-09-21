@@ -1,4 +1,6 @@
 import yfinance as yf
+import yahoo_fin.stock_info as si
+import pandas as pd
 
 class tradingAlgo:
     def __init__(self, symbol):
@@ -6,23 +8,204 @@ class tradingAlgo:
         # print("INIT " + )
         self.stock = yf.Ticker(self.symbol)
         self.currentPrice = self.stock.history(period='1d')['Close'][0]
+
         self.oneYearReturn = ((self.currentPrice / self.stock.history(period='1y')['Close'][0]) - 1) * 100
         self.sixMonthReturn = ((self.currentPrice / self.stock.history(period='180d')['Close'][0]) - 1) * 100
         self.threeMonthReturn = ((self.currentPrice / self.stock.history(period='90d')['Close'][0]) - 1) * 100
         self.oneMonthReturn = ((self.currentPrice / self.stock.history(period='30d')['Close'][0]) - 1) * 100
         self.fiveDayReturn = ((self.currentPrice / self.stock.history(period='5d')['Close'][0]) - 1) * 100
+
         self.fiftyDayAverage = self.stock.history(period='50d')['Close']
         self.twoHundredDayAverage = self.stock.history(period='200d')['Close']
 
-        # print("oneYearReturn = " + str(self.oneYearReturn))
+        # This is a different library from the one above. I couldn't get the current PE ratio from yfinance
+        # quoteTable['value'][13] gives the PE ratio. IF this ever changes, print(quoteTable) and find the row x column
+        quoteTable = si.get_quote_table(self.symbol, dict_result=False)
+        # print(quoteTable)
+        self.pe = quoteTable['value'][13]
+
+        self.priceToBook = self.stock.info['priceToBook']
+        # print("book = " + str(self.priceToBook))
+        self.priceToSales = self.stock.info['priceToSalesTrailing12Months']
+        # print("priceToSales = " + str(self.priceToSales))
+
+        self.marketCap = quoteTable['value'][11]
+        # print("marketCap = " + str(self.marketCap))
+        self.totalDebt = self.stock.info['totalDebt']
+        # print("totalDebt = " + str(self.totalDebt))
+        self.totalCash = self.stock.info['totalCash']
+        # print("totalCash = " + str(self.totalCash))
+
+        length = len(self.marketCap)
+        char = self.marketCap[length-1:length]
+        # print("char = " + char)
+        self.marketCap = self.marketCap[0:length-1]
+        self.marketCap = float(self.marketCap)
+        if char == 'B':
+            self.marketCap = self.marketCap * 1000000000
+        elif char == 'M':
+            self.marketCap = self.marketCap * 1000000
+        elif char == 'T':
+            self.marketCap = self.marketCap * 1000000000000
+
+
+        # EV represents a theoretical takeover price if a company were to be bought
+        # Can be a better value than pure marketCap
+        enterpriseValue = self.marketCap + self.totalDebt - self.totalCash
+        # print("enterpriseValue = " + str(enterpriseValue))
+        self.ev_to_ebitda = enterpriseValue / (self.stock.info['ebitda'])
+        # print("ev_to_ebitda = " + str(self.ev_to_ebitda))
+
+        self.ev_to_grossProfit = enterpriseValue / self.stock.info['grossProfits']
+        # print("ev_to_grossProfit = " + str(self.ev_to_grossProfit))
+
 
     def getSymbol(self):
         return self.symbol
 
-    # take into account 10 year tresury
-    # take into account the % yearly gain the company is shooting for
-    def value(self):
-        print("Value based algorithm")
+    # if pe is negative, give it a 0 rating. negative means the company isn't making money yet and
+    # from a value perspective, 0 earnings sucks.
+    # Also, stocks with pe in the hundreds should get a lower value rating
+    def valueAlgo(self):
+        PePercentile = 0
+        PbPercentile = 0
+        PsPercentile = 0
+        # enterprise value to ebitda
+        EVEBITDAPercentile = 0
+        # enterprise value to gross profit
+        EVGPPercentile = 0
+
+        if self.pe > 200:
+            PePercentile = 95
+        elif self.pe > 100:
+            PePercentile = 90
+        elif self.pe > 60:
+            PePercentile = 85
+        elif self.pe > 44:
+            PePercentile = 80
+        elif self.pe > 38:
+            PePercentile = 75
+        elif self.pe > 34:
+            PePercentile = 70
+        elif self.pe > 31:
+            PePercentile = 65
+        elif self.pe > 28:
+            PePercentile = 60
+        elif self.pe > 26:
+            PePercentile = 55
+        elif self.pe > 24:
+            PePercentile = 50
+        elif self.pe > 22:
+            PePercentile = 45
+        elif self.pe > 20:
+            PePercentile = 40
+        elif self.pe > 18:
+            PePercentile = 35
+        elif self.pe > 16:
+            PePercentile = 30
+        elif self.pe > 15:
+            PePercentile = 25
+        elif self.pe > 14:
+            PePercentile = 20
+        elif self.pe > 12:
+            PePercentile = 15
+        elif self.pe > 0:
+            PePercentile = 10
+        else:
+            PePercentile = 5
+
+        print("PE percentile = " + str(PePercentile))
+
+        if self.priceToBook > 28:
+            PbPercentile = 95
+        elif self.priceToBook > 22:
+            PbPercentile = 90
+        elif self.priceToBook > 17:
+            PbPercentile = 85
+        elif self.priceToBook > 12:
+            PbPercentile = 80
+        elif self.priceToBook > 7.2:
+            PbPercentile = 75
+        elif self.priceToBook > 6.2:
+            PbPercentile = 70
+        elif self.priceToBook > 5.4:
+            PbPercentile = 65
+        elif self.priceToBook > 4.7:
+            PbPercentile = 60
+        elif self.priceToBook > 4.0:
+            PbPercentile = 55
+        elif self.priceToBook > 3.4:
+            PbPercentile = 50
+        elif self.priceToBook > 2.8:
+            PbPercentile = 45
+        elif self.priceToBook > 2.3:
+            PbPercentile = 40
+        elif self.priceToBook > 1.9:
+            PbPercentile = 35
+        elif self.priceToBook > 1.6:
+            PbPercentile = 30
+        elif self.priceToBook > 1.3:
+            PbPercentile = 25
+        elif self.priceToBook > 1.0:
+            PbPercentile = 20
+        elif self.priceToBook > 0.7:
+            PbPercentile = 15
+        elif self.priceToBook > 0.4:
+            PbPercentile = 10
+        else:
+            PbPercentile = 5
+
+        print("Price-Book percentile = " + str(PbPercentile))
+
+        if self.priceToSales > 14:
+            PsPercentile = 95
+        elif self.priceToSales > 11:
+            PsPercentile = 90
+        elif self.priceToSales > 8:
+            PsPercentile = 85
+        elif self.priceToSales > 6.2:
+            PsPercentile = 80
+        elif self.priceToSales > 5.2:
+            PsPercentile = 75
+        elif self.priceToSales > 4.75:
+            PsPercentile = 70
+        elif self.priceToSales > 4.5:
+            PsPercentile = 65
+        elif self.priceToSales > 4.15:
+            PsPercentile = 60
+        elif self.priceToSales > 3.8:
+            PsPercentile = 55
+        elif self.priceToSales > 3.4:
+            PsPercentile = 50
+        elif self.priceToSales > 3.1:
+            PsPercentile = 45
+        elif self.priceToSales > 2.7:
+            PsPercentile = 40
+        elif self.priceToSales > 2.3:
+            PsPercentile = 35
+        elif self.priceToSales > 1.9:
+            PsPercentile = 30
+        elif self.priceToSales > 1.5:
+            PsPercentile = 25
+        elif self.priceToSales > 1.1:
+            PsPercentile = 20
+        elif self.priceToSales > 0.7:
+            PsPercentile = 15
+        elif self.priceToSales > 0.3:
+            PsPercentile = 10
+        else:
+            PsPercentile = 5
+
+        print("Price-Sales percentile = " + str(PsPercentile))
+
+
+
+
+        # Do the EV percentiles
+
+
+
+        return 0
 
     #  Returns the percentile of momentum
     #  Low quality momentum stocks (those that are pump and dump) will get a
@@ -39,23 +222,23 @@ class tradingAlgo:
         oneMonthPercentile = 0
         fiveDayPercentile = 0
 
-        if self.oneYearReturn > 70:
+        if self.oneYearReturn > 59:
             oneYearPercentile = 95
-        elif self.oneYearReturn > 55:
+        elif self.oneYearReturn > 50:
             oneYearPercentile = 90
-        elif self.oneYearReturn > 38:
+        elif self.oneYearReturn > 41:
             oneYearPercentile = 85
-        elif self.oneYearReturn > 31:
+        elif self.oneYearReturn > 34:
             oneYearPercentile = 80
-        elif self.oneYearReturn > 26:
+        elif self.oneYearReturn > 27:
             oneYearPercentile = 75
         elif self.oneYearReturn > 22:
             oneYearPercentile = 70
-        elif self.oneYearReturn > 19:
+        elif self.oneYearReturn > 18:
             oneYearPercentile = 65
-        elif self.oneYearReturn > 15:
+        elif self.oneYearReturn > 14:
             oneYearPercentile = 60
-        elif self.oneYearReturn > 11:
+        elif self.oneYearReturn > 10:
             oneYearPercentile = 55
         elif self.oneYearReturn > 5:
             oneYearPercentile = 50
@@ -72,13 +255,13 @@ class tradingAlgo:
 
         # print("oneYearPercentile = " + str(oneYearPercentile))
 
-        if self.sixMonthReturn > 60:
+        if self.sixMonthReturn > 45:
             sixMonthPercentile = 95
-        elif self.sixMonthReturn > 42:
+        elif self.sixMonthReturn > 37:
             sixMonthPercentile = 90
-        elif self.sixMonthReturn > 26:
+        elif self.sixMonthReturn > 28:
             sixMonthPercentile = 85
-        elif self.sixMonthReturn > 20:
+        elif self.sixMonthReturn > 21:
             sixMonthPercentile = 80
         elif self.sixMonthReturn > 15:
             sixMonthPercentile = 75
@@ -105,31 +288,31 @@ class tradingAlgo:
 
         # print("sixMonthPercentile = " + str(sixMonthPercentile))
 
-        if self.threeMonthReturn > 50:
+        if self.threeMonthReturn > 38:
             threeMonthPercentile = 95
-        elif self.threeMonthReturn > 39:
+        elif self.threeMonthReturn > 31:
             threeMonthPercentile = 90
-        elif self.threeMonthReturn > 30:
+        elif self.threeMonthReturn > 24:
             threeMonthPercentile = 85
-        elif self.threeMonthReturn > 22:
-            threeMonthPercentile = 80
         elif self.threeMonthReturn > 18:
+            threeMonthPercentile = 80
+        elif self.threeMonthReturn > 14:
             threeMonthPercentile = 75
-        elif self.threeMonthReturn > 15:
+        elif self.threeMonthReturn > 11:
             threeMonthPercentile = 70
-        elif self.threeMonthReturn > 12:
+        elif self.threeMonthReturn > 8:
             threeMonthPercentile = 65
-        elif self.threeMonthReturn > 9:
-            threeMonthPercentile = 60
         elif self.threeMonthReturn > 6:
+            threeMonthPercentile = 60
+        elif self.threeMonthReturn > 4:
             threeMonthPercentile = 55
-        elif self.threeMonthReturn > 3:
+        elif self.threeMonthReturn > 2:
             threeMonthPercentile = 50
-        elif self.threeMonthReturn > 1:
-            threeMonthPercentile = 40
         elif self.threeMonthReturn > 0:
+            threeMonthPercentile = 40
+        elif self.threeMonthReturn > -3:
             threeMonthPercentile = 30
-        elif self.threeMonthReturn > -5:
+        elif self.threeMonthReturn > -6:
             threeMonthPercentile = 20
         elif self.threeMonthReturn > -10:
             threeMonthPercentile = 10
@@ -138,19 +321,19 @@ class tradingAlgo:
 
         # print("threeMonthPercentile = " + str(threeMonthPercentile))
 
-        if self.oneMonthReturn > 20:
+        if self.oneMonthReturn > 16:
             oneMonthPercentile = 95
-        elif self.oneMonthReturn > 15:
-            oneMonthPercentile = 90
         elif self.oneMonthReturn > 13:
-            oneMonthPercentile = 85
+            oneMonthPercentile = 90
         elif self.oneMonthReturn > 11:
-            oneMonthPercentile = 80
+            oneMonthPercentile = 85
         elif self.oneMonthReturn > 10:
-            oneMonthPercentile = 75
+            oneMonthPercentile = 80
         elif self.oneMonthReturn > 9:
-            oneMonthPercentile = 70
+            oneMonthPercentile = 75
         elif self.oneMonthReturn > 8:
+            oneMonthPercentile = 70
+        elif self.oneMonthReturn > 7:
             oneMonthPercentile = 65
         elif self.oneMonthReturn > 6:
             oneMonthPercentile = 60
@@ -204,7 +387,7 @@ class tradingAlgo:
 
         # print("fiveDayPercentile = " + str(fiveDayPercentile))
 
-        momentumScore = (0.4 * oneYearPercentile) + (0.25 * sixMonthPercentile) + (0.2 * threeMonthPercentile) + (0.1 * oneMonthPercentile) + (0.05 * fiveDayPercentile)
+        momentumScore = (0.3 * oneYearPercentile) + (0.25 * sixMonthPercentile) + (0.2 * threeMonthPercentile) + (0.2 * oneMonthPercentile) + (0.05 * fiveDayPercentile)
 
         return momentumScore
 
@@ -242,16 +425,21 @@ class tradingAlgo:
 
 # Main entry point
 if __name__ == '__main__':
-    algo = tradingAlgo("SQ")
+    algo = tradingAlgo("AAP")
     print("TradingAlgo.py main. Testing: " + str(algo.getSymbol()))
+    print("")
 
     # print("Testing Mean Reversion:")
     # meanReversion = algo.getMeanReversion()
     # print("/getMeanReversion returned: " + str(meanReversion))
 
-    print("Testing Momentum Algo:")
-    momentum = algo.momentumAlgo()
-    print("/momentumAlgo returned: " + str(momentum) + "%")
+    # print("Testing Momentum Algo:")
+    # momentum = algo.momentumAlgo()
+    # print("/momentumAlgo returned: " + str(momentum) + "%" + ". Above 70% calssifies as a good momentum stock")
+
+    print("Testing Value Algo:")
+    value = algo.valueAlgo()
+    print("/valueAlgo returned: " + str(value) + "%")
 
     # print("Testing 50day / 200day:")
     # fiftyDay = algo.getMovingAverageGap()
