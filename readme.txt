@@ -49,14 +49,20 @@ Installed material-ui/core to get simple cards
   yarn add @material-ui/core
 
 
+If praw is outdated, it updates often, run:
+  pip install --upgrade praw
+
+
 To run the project on bootup, cd into the api directory. Open 2 terminal windows
 from this folder. In the first terminal run
   source ./venv/bin/activate
   python3 api.py
+
 This activates the virtual environment and starts the backend server. Then, in
 the other window
   source ./venv/bin/activate
   yarn start
+
 This activates the virtual environment and starts the react server
   exit
 Will close the virtual environment
