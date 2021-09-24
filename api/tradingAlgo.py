@@ -684,9 +684,35 @@ class tradingAlgo:
     # The lower the percent, the larger the long-term shareholder base
     # The higher the percent, the smaller the long-term shareholder base
     #  -> AKA, just a day trade stock
+    # Under 1% is low. 1-4% is medium. Above 4% start to become a lot
     def getStockVolatility(self):
+        avgVolume = self.stock.info['averageVolume']
+        avgValueTraded = self.currentPrice * avgVolume
 
-        return 0
+        # Block to get market cap of a company
+        quoteTable = si.get_quote_table(self.symbol, dict_result=False)
+        self.marketCap = quoteTable['value'][11]
+        length = len(self.marketCap)
+        char = self.marketCap[length-1:length]
+        self.marketCap = self.marketCap[0:length-1]
+        self.marketCap = float(self.marketCap)
+        # The yahoo_fin library returns a string that ends with M/B/T to represent
+        # million/billion/trillion. We need the actual value here for computation
+        # so this block just parses the string accordingly
+        if char == 'B':
+            self.marketCap = self.marketCap * 1000000000
+        elif char == 'M':
+            self.marketCap = self.marketCap * 1000000
+        elif char == 'T':
+            self.marketCap = self.marketCap * 1000000000000
+
+        # Calculation to get percent of company traded each day
+        percentTraded = 100 * (avgValueTraded / self.marketCap)
+
+        formatPercentTraded = "{:.2f}".format(percentTraded)
+
+        # print("percentTraded = " + str(percentTraded))
+        return float(formatPercentTraded)
 
     # Return the descrption of a company provided by yahoo finance library
     def getCompanyDescription(self):
@@ -737,20 +763,20 @@ class tradingAlgo:
 
 # Main entry point
 if __name__ == '__main__':
-    algo = tradingAlgo("TSLA")
+    algo = tradingAlgo("AMZN")
 
     print("TradingAlgo.py main. Testing: " + str(algo.getSymbol()))
     print("")
 
-    print("Testing getCompanyDescription:")
-    summary = algo.getCompanyDescription()
-    print("/getCompanyDescription returned: " + str(summary))
-    print("")
+    # print("Testing getCompanyDescription:")
+    # summary = algo.getCompanyDescription()
+    # print("/getCompanyDescription returned: " + str(summary))
+    # print("")
 
-    print("Testing getCompanyFullName:")
-    fullName = algo.getCompanyFullName()
-    print("/getCompanyFullName returned: " + str(fullName))
-    print("")
+    # print("Testing getCompanyFullName:")
+    # fullName = algo.getCompanyFullName()
+    # print("/getCompanyFullName returned: " + str(fullName))
+    # print("")
 
     # print("Testing Mean Reversion:")
     # meanReversion = algo.getMeanReversion()
@@ -780,3 +806,8 @@ if __name__ == '__main__':
     #     print("/getMovingAverageGap returned: +" + str(formatFiftyDay) +"%")
     # else:
     #     print("/getMovingAverageGap returned: -" + str(formatFiftyDay) +"%")
+
+    print("Testing getStockVolatility:")
+    volatility = algo.getStockVolatility()
+    print("/getStockVolatility returned: " + str(volatility) + "%")
+    print("")
