@@ -767,7 +767,7 @@ if __name__ == '__main__':
 
     print("TradingAlgo.py main. Testing: " + str(algo.getSymbol()))
     print("")
-
+    print("Test")
     # print("Testing getCompanyDescription:")
     # summary = algo.getCompanyDescription()
     # print("/getCompanyDescription returned: " + str(summary))
