@@ -545,6 +545,7 @@ class tradingAlgo:
     # above 70% classifies as a decent growth stock with 5 year time frame
     # This algo won't work if yahoo finance has poor 5 year growth estimates. They
     # are sometimes abysmal
+    # **** Fix growth companies that have negative earnings at the moment
     def growthAlgo(self):
         # Percent the company is excepted to grow at
         yearlyGrowthRate = 0
@@ -650,7 +651,6 @@ class tradingAlgo:
 
         return fiveYearGrowthPercentile
 
-
     # Gets the value + momentum of a stock. Adds the % together and divide by 2
     # This returns the % buy if its a value based company. They must have a decent
     # yearly return to get a good rating. This filters out stocks like BABA which
@@ -677,7 +677,6 @@ class tradingAlgo:
         composite = (growthPercentile + momentumPercentile) / 2
 
         return composite
-
 
     # divides the value of the daily average volume by the market cap
     # This gives a percent of the company trading hands each day
@@ -747,7 +746,6 @@ class tradingAlgo:
 
         return percentDiff
 
-
     # The mean reversion strategy says highs and lows of a stock are only temporary.
     # They will revert to their mean value from time to time
     def getMeanReversion(self):
@@ -763,11 +761,12 @@ class tradingAlgo:
 
 # Main entry point
 if __name__ == '__main__':
-    algo = tradingAlgo("AMZN")
+    algo = tradingAlgo("F")
+    # Run this with FORD and a negative earnings stock.
+    #  -> fix these bugs
 
     print("TradingAlgo.py main. Testing: " + str(algo.getSymbol()))
     print("")
-    print("Test")
     # print("Testing getCompanyDescription:")
     # summary = algo.getCompanyDescription()
     # print("/getCompanyDescription returned: " + str(summary))
@@ -782,20 +781,20 @@ if __name__ == '__main__':
     # meanReversion = algo.getMeanReversion()
     # print("/getMeanReversion returned: " + str(meanReversion))
 
-    # print("Testing Momentum Algo:")
-    # momentum = algo.momentumAlgo()
-    # print("/momentumAlgo returned: " + str(momentum) + "%")
-    # print("")
+    print("Testing Momentum Algo:")
+    momentum = algo.momentumAlgo()
+    print("/momentumAlgo returned: " + str(momentum) + "%")
+    print("")
 
-    # print("Testing growthComposite")
-    # growth = algo.growthComposite()
-    # print("/growthComposite returned: " + str(growth) + "%")
-    # print("")
+    print("Testing growthComposite")
+    growth = algo.growthAlgo()
+    print("/growthComposite returned: " + str(growth) + "%")
+    print("")
 
-    # print("Testing valueComposite:")
-    # value = algo.valueComposite()
-    # print("/valueComposite returned: " + str(value) + "%")
-    # print("")
+    print("Testing valueComposite:")
+    value = algo.valueAlgo()
+    print("/valueComposite returned: " + str(value) + "%")
+    print("")
 
     # print("50day = " + str(algo.getFiftyDayAvg()))
     # print("200day = " + str(algo.getTwoHundredDayAverage()))
@@ -807,7 +806,7 @@ if __name__ == '__main__':
     # else:
     #     print("/getMovingAverageGap returned: -" + str(formatFiftyDay) +"%")
 
-    print("Testing getStockVolatility:")
-    volatility = algo.getStockVolatility()
-    print("/getStockVolatility returned: " + str(volatility) + "%")
-    print("")
+    # print("Testing getStockVolatility:")
+    # volatility = algo.getStockVolatility()
+    # print("/getStockVolatility returned: " + str(volatility) + "%")
+    # print("")

@@ -37,7 +37,7 @@ def runRedditScraper():
     # url = input()
 
     #Update this line with newest subreddit daily discussion link
-    url = "https://www.reddit.com/r/wallstreetbets/comments/pnzrg1/daily_discussion_thread_for_september_14_2021/"
+    url = "https://www.reddit.com/r/wallstreetbets/comments/pugkne/daily_discussion_thread_for_september_24_2021/"
 
     numFiles = len(os.listdir('./data_files'))
     numFiles = numFiles + 1
