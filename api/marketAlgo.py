@@ -3,21 +3,27 @@ from datetime import timedelta
 import pandas as pd
 import yahoo_fin.stock_info as si
 import yfinance as yf
+import json
 
 # All seeing algo
+# -> VIX
 # moving averages
 # -> 10 year
-# -> VIX
 # Take into account the various segments performance
 
 
-# market segment % daily average change (make this a json obj with -> segment : %change)
+# to do:
 # take into account overnight reverse repurchase rate. This is the amount of money banks have
 # -> Why kevin thinks the market won't dip right now. Looks into this at work
-# include the BPI, bullish percent index
 # include the high low index
+# include CPI data?
 # Figure out oil relation to stocks
 # Figure out how the FED affects this. How what they say is important to the macro
+# include the BPI, bullish percent index?
+# FIX: if jsonMarketSegments keeps returning an error, put try catchs in each of the functions
+# tax increase is bad for markets
+# monetary policy, particularily M2. Look at monthly amounts. monthly % changes
+# interest rates - loan rates. Look at historical data
 
 
 class marketAlgo:
@@ -28,6 +34,51 @@ class marketAlgo:
         self.nasdaq = 0
         self.sp = 0
         self.dow = 0
+
+    # Keep brainstorming what to do here
+    # maybe return an overall seniment meter?
+    # % chance the algo thinks its a bull market / bear market. Buy/sell on the macro level
+    def marketAlgorithm(self):
+
+        return 0
+
+    # Figure out how to download the reverse repo data
+    # Reverse Repurchase Agreements are the purchase of securities with the agreement
+    # to sell them at a high price in the future.
+    # When this is high, it means banks have way too much money and don't know what to do with it
+    # This means the market might not fall very hard, too much money going in buying the dip
+    def reverseRepoRate(self):
+
+        return 0
+
+    # Get montly CPI data
+    # Find real versus expected data
+    # Use this for the master algo
+    def CPIData(self):
+
+        return 0
+
+    # Get current crude oil prices
+    # Figure out what it's price means for the market
+    # Use this for the master algo
+    def oilData(self):
+
+        return 0
+
+    # Investopedia has a calculation for this
+    # Maybe get this when doing the segments function because of less API calls
+    def highLowIndex(self):
+
+        return 0
+
+
+
+
+# COMPLETED
+
+
+
+
 
     # Returns average daily % change based on the five stocks listed:
     # XOM, CVX, SU, EPD, NEE
@@ -57,52 +108,363 @@ class marketAlgo:
     # Returns average daily % change based on the five stocks listed:
     # CE, DD, FCX, NUE, CLF
     def materialsSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # Celanese Corporation
+        CE = si.get_quote_table("CE")
+        changeCE = ((CE['Quote Price'] / CE['Previous Close']) - 1) * 100
+        # DuPont - chemicals
+        DD = si.get_quote_table("DD")
+        changeDD = ((DD['Quote Price'] / DD['Previous Close']) - 1) * 100
+        # Freeport - McMoRan
+        FCX = si.get_quote_table("FCX")
+        changeFCX = ((FCX['Quote Price'] / FCX['Previous Close']) - 1) * 100
+        # Nucor - Steel production
+        NUE = si.get_quote_table("NUE")
+        changeNUE = ((NUE['Quote Price'] / NUE['Previous Close']) - 1) * 100
+        # Cleveland-Cliffs - mining
+        CLF = si.get_quote_table("CLF")
+        changeCLF = ((CLF['Quote Price'] / CLF['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeCE + changeDD + changeFCX + changeNUE + changeCLF) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # ETN, LPX, SEB, BLDR, GNRC, CAT
     def industrialsSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # Eaton corporation - Power mangement
+        ETN = si.get_quote_table("ETN")
+        changeETN = ((ETN['Quote Price'] / ETN['Previous Close']) - 1) * 100
+        # Louisiana-Pacific corporation - materials manufacturer
+        LPX = si.get_quote_table("LPX")
+        changeLPX = ((LPX['Quote Price'] / LPX['Previous Close']) - 1) * 100
+        # Seaboard Corporation - Conglomerate
+        SEB = si.get_quote_table("SEB")
+        changeSEB = ((SEB['Quote Price'] / SEB['Previous Close']) - 1) * 100
+        # Builders First Source - Manufacturer
+        BLDR = si.get_quote_table("BLDR")
+        changeBLDR = ((BLDR['Quote Price'] / BLDR['Previous Close']) - 1) * 100
+        # Caterpiller - Industrial Equipment
+        CAT = si.get_quote_table("CAT")
+        changeCAT = ((CAT['Quote Price'] / CAT['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeETN + changeLPX + changeSEB + changeBLDR + changeCAT) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # NRG, EXC, CNP, DUK, CATL
     def utilitiesSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # NRG Energy - Nuclear
+        NRG = si.get_quote_table("NRG")
+        changeNRG = ((NRG['Quote Price'] / NRG['Previous Close']) - 1) * 100
+        # Exelon - Nuclear
+        EXC = si.get_quote_table("EXC")
+        changeEXC = ((EXC['Quote Price'] / EXC['Previous Close']) - 1) * 100
+        # Center Point Energy - Utilities Company
+        CNP = si.get_quote_table("CNP")
+        changeCNP = ((CNP['Quote Price'] / CNP['Previous Close']) - 1) * 100
+        # Duke Energy - Holding company
+        DUK = si.get_quote_table("DUK")
+        changeDUK = ((DUK['Quote Price'] / DUK['Previous Close']) - 1) * 100
+        # Southern Company - Gas and electric
+        SO = si.get_quote_table("SO")
+        changeSO = ((SO['Quote Price'] / SO['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeNRG + changeEXC + changeCNP + changeDUK + changeSO) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # REGN, MRNA, JNJ, UNH, CVS
     def healthcareSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # Regernon pharmaceuticals - biotech
+        REGN = si.get_quote_table("REGN")
+        changeREGN = ((REGN['Quote Price'] / REGN['Previous Close']) - 1) * 100
+        # Moderna - Bio tech
+        MRNA = si.get_quote_table("MRNA")
+        changeMRNA = ((MRNA['Quote Price'] / MRNA['Previous Close']) - 1) * 100
+        # Johnson & Johnson - everything health care
+        JNJ = si.get_quote_table("JNJ")
+        changeJNJ = ((JNJ['Quote Price'] / JNJ['Previous Close']) - 1) * 100
+        # United Health Group - Insurance
+        UNH = si.get_quote_table("UNH")
+        changeUNH = ((UNH['Quote Price'] / UNH['Previous Close']) - 1) * 100
+        # CVS Health - Pharmacy company
+        CVS = si.get_quote_table("CVS")
+        changeCVS = ((CVS['Quote Price'] / CVS['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeREGN + changeMRNA + changeJNJ + changeUNH + changeCVS) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # SQ, V, JPM, WFC, AXP
     def financialsSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # Square
+        SQ = si.get_quote_table("SQ")
+        changeSQ = ((SQ['Quote Price'] / SQ['Previous Close']) - 1) * 100
+        # Visa
+        V = si.get_quote_table("V")
+        changeV = ((V['Quote Price'] / V['Previous Close']) - 1) * 100
+        # JP Morgan
+        JPM = si.get_quote_table("JPM")
+        changeJPM = ((JPM['Quote Price'] / JPM['Previous Close']) - 1) * 100
+        # Wells Fargo
+        WFC = si.get_quote_table("WFC")
+        changeWFC = ((WFC['Quote Price'] / WFC['Previous Close']) - 1) * 100
+        # American Express
+        AXP = si.get_quote_table("AXP")
+        changeAXP = ((AXP['Quote Price'] / AXP['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeSQ + changeV + changeJPM + changeWFC + changeAXP) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # EBAY, WMT, HAS, TGT, SBUX
     def consumerDiscretionarySegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # EBAY
+        EBAY = si.get_quote_table("EBAY")
+        changeEBAY = ((EBAY['Quote Price'] / EBAY['Previous Close']) - 1) * 100
+        # WalMart
+        WMT = si.get_quote_table("WMT")
+        changeWMT = ((WMT['Quote Price'] / WMT['Previous Close']) - 1) * 100
+        # Hasbro
+        HAS = si.get_quote_table("HAS")
+        changeHAS = ((HAS['Quote Price'] / HAS['Previous Close']) - 1) * 100
+        # Target
+        TGT = si.get_quote_table("TGT")
+        changeTGT = ((TGT['Quote Price'] / TGT['Previous Close']) - 1) * 100
+        # StarBux
+        SBUX = si.get_quote_table("SBUX")
+        changeSBUX = ((SBUX['Quote Price'] / SBUX['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeEBAY + changeWMT + changeHAS + changeTGT + changeSBUX) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # TSN, PG, PEP, COST, KO
     def consumerStaplesSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # Tyson Foods
+        TSN = si.get_quote_table("TSN")
+        changeTSN = ((TSN['Quote Price'] / TSN['Previous Close']) - 1) * 100
+        # Protor and Gamble
+        PG = si.get_quote_table("PG")
+        changePG = ((PG['Quote Price'] / PG['Previous Close']) - 1) * 100
+        # Pepsi
+        PEP = si.get_quote_table("PEP")
+        changePEP = ((PEP['Quote Price'] / PEP['Previous Close']) - 1) * 100
+        # Costco
+        COST = si.get_quote_table("COST")
+        changeCOST = ((COST['Quote Price'] / COST['Previous Close']) - 1) * 100
+        # Coke
+        KO = si.get_quote_table("KO")
+        changeKO = ((KO['Quote Price'] / KO['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeTSN + changePG + changePEP + changeCOST + changeKO) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # AAPL, TSLA, NVDA, AMD, AMAT, AMZN, MSFT
     def informationTechnologySegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # Apple
+        AAPL = si.get_quote_table("AAPL")
+        changeAAPL = ((AAPL['Quote Price'] / AAPL['Previous Close']) - 1) * 100
+        # Tesla
+        TSLA = si.get_quote_table("TSLA")
+        changeTSLA = ((TSLA['Quote Price'] / TSLA['Previous Close']) - 1) * 100
+        # Nvidia
+        NVDA = si.get_quote_table("NVDA")
+        changeNVDA = ((NVDA['Quote Price'] / NVDA['Previous Close']) - 1) * 100
+        # AMD
+        AMD = si.get_quote_table("AMD")
+        changeAMD = ((AMD['Quote Price'] / AMD['Previous Close']) - 1) * 100
+        # Applied Materials
+        AMAT = si.get_quote_table("AMAT")
+        changeAMAT = ((AMAT['Quote Price'] / AMAT['Previous Close']) - 1) * 100
+        # Amazon
+        AMZN = si.get_quote_table("AMZN")
+        changeAMZN = ((AMZN['Quote Price'] / AMZN['Previous Close']) - 1) * 100
+        # Microsoft
+        MSFT = si.get_quote_table("MSFT")
+        changeMSFT = ((MSFT['Quote Price'] / MSFT['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeAAPL + changeTSLA + changeNVDA + changeAMAT + changeAMZN + changeMSFT) / 6
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # VIAC, FOX, TMUS, FB, VZ
     def communicationServicesSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # ViaCom CBS - Mass media
+        VIAC = si.get_quote_table("VIAC")
+        changeVIAC = ((VIAC['Quote Price'] / VIAC['Previous Close']) - 1) * 100
+        # Fox network
+        FOX = si.get_quote_table("FOX")
+        changeFOX = ((FOX['Quote Price'] / FOX['Previous Close']) - 1) * 100
+        # T Mobile - carrier
+        TMUS = si.get_quote_table("TMUS")
+        changeTMUS = ((TMUS['Quote Price'] / TMUS['Previous Close']) - 1) * 100
+        # Facebook
+        FB = si.get_quote_table("FB")
+        changeFB = ((FB['Quote Price'] / FB['Previous Close']) - 1) * 100
+        # Verizon - carrier
+        VZ = si.get_quote_table("VZ")
+        changeVZ = ((VZ['Quote Price'] / VZ['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeVIAC + changeFOX + changeTMUS + changeFB + changeVZ) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # NLY, AGNC, NRZ, SUI, WY
     def realEstateSegment(self):
+        segmentDailyChange = 0
 
-        return 0
+        # Annaly captial management
+        NLY = si.get_quote_table("NLY")
+        changeNLY = ((NLY['Quote Price'] / NLY['Previous Close']) - 1) * 100
+        # AGNC investment corp - real estate investment trust company
+        AGNC = si.get_quote_table("AGNC")
+        changeAGNC = ((AGNC['Quote Price'] / AGNC['Previous Close']) - 1) * 100
+        # New residential Investment
+        NRZ = si.get_quote_table("NRZ")
+        changeNRZ = ((NRZ['Quote Price'] / NRZ['Previous Close']) - 1) * 100
+        # Sun Communities - Real Estate Investmnet trust company
+        SUI = si.get_quote_table("SUI")
+        changeSUI = ((SUI['Quote Price'] / SUI['Previous Close']) - 1) * 100
+        # Weyerhaeuser - Real estate investment trust company
+        WY = si.get_quote_table("WY")
+        changeWY = ((WY['Quote Price'] / WY['Previous Close']) - 1) * 100
 
+        segmentDailyChange = (changeNLY + changeAGNC + changeNRZ + changeSUI + changeWY) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # CCL, AMC, AAL, CMG, ABNB
+    def recoverySegment(self):
+        segmentDailyChange = 0
+
+        # Carnival Cruise Line
+        CCL = si.get_quote_table("CCL")
+        changeCCL = ((CCL['Quote Price'] / CCL['Previous Close']) - 1) * 100
+        # AMC theaters. I was thinking to not put this in bc its so volatile right now,
+        # but I'll keep it for now
+        AMC = si.get_quote_table("AMC")
+        changeAMC = ((AMC['Quote Price'] / AMC['Previous Close']) - 1) * 100
+        # American Airlines
+        AAL = si.get_quote_table("AAL")
+        changeAAL = ((AAL['Quote Price'] / AAL['Previous Close']) - 1) * 100
+        # Chipotle mexiacn grill
+        CMG = si.get_quote_table("CMG")
+        changeCMG = ((CMG['Quote Price'] / CMG['Previous Close']) - 1) * 100
+        # Air BNB
+        ABNB = si.get_quote_table("ABNB")
+        changeABNB = ((ABNB['Quote Price'] / ABNB['Previous Close']) - 1) * 100
+
+        segmentDailyChange = (changeCCL + changeAMC + changeAAL + changeCMG + changeABNB) / 5
+
+        return segmentDailyChange
+
+    # Returns average daily % change based on the five stocks listed:
+    # ZM, ROKU, ETSY, DPZ, AMZN
+    def stayAtHomeSegment(self):
+        segmentDailyChange = 0
+
+        # Zoom
+        ZM = si.get_quote_table("ZM")
+        changeZM = ((ZM['Quote Price'] / ZM['Previous Close']) - 1) * 100
+        # Roku
+        ROKU = si.get_quote_table("ROKU")
+        changeROKU = ((ROKU['Quote Price'] / ROKU['Previous Close']) - 1) * 100
+        # Etsy
+        ETSY = si.get_quote_table("ETSY")
+        changeETSY = ((ETSY['Quote Price'] / ETSY['Previous Close']) - 1) * 100
+        # Dominos Pizza
+        DPZ = si.get_quote_table("DPZ")
+        changeDPZ = ((DPZ['Quote Price'] / DPZ['Previous Close']) - 1) * 100
+        # Amazon
+        AMZN = si.get_quote_table("AMZN")
+        changeAMZN = ((AMZN['Quote Price'] / AMZN['Previous Close']) - 1) * 100
+
+        segmentDailyChange = (changeZM + changeROKU + changeETSY + changeDPZ + changeAMZN) / 5
+
+        return segmentDailyChange
+
+    # Calls the 11 market segment functions + recovery/stay at home. This takes ~1 minute to run.
+    # Maybe create a data base at some point that contains this ran every few minutes
+    # Need cloud server first for this
     def jsonMarketSegments(self):
+        # print("Getting market segments")
+        energySegment = self.energySegment()
+        print("Returned energy")
+        materialsSegment = self.materialsSegment()
+        print("Returned materials")
+        industrialsSegment = self.industrialsSegment()
+        print("Returned industrials")
+        utilitiesSegment = self.utilitiesSegment()
+        print("Returned utilities")
+        healthcareSegment = self.healthcareSegment()
+        print("Returned healthcare")
+        financialsSegment = self.financialsSegment()
+        print("Returned financials")
+        consumerDiscretionarySegment = self.consumerDiscretionarySegment()
+        print("Returned consumer discretionaries")
+        consumerStaplesSegment = self.consumerStaplesSegment()
+        print("Returned consumer staples")
+        informationTechnologySegment = self.informationTechnologySegment()
+        print("Returned information technology")
+        communicationServicesSegment = self.communicationServicesSegment()
+        print("Returned communication services")
+        realEstateSegment = self.realEstateSegment()
+        print("Returned real estate")
+        recoverySegment = self.recoverySegment()
+        print("Returned recovery segment")
+        stayAtHomeSegment = self.stayAtHomeSegment()
+        print("Returned stay at home segment")
 
-        return 0
+        # Create json obj of market segments
+        segmentsJsonObj = {
+        "Energy": energySegment,
+        "Materials": materialsSegment,
+        "Industrials": industrialsSegment,
+        "Utilities": utilitiesSegment,
+        "Healthcare": healthcareSegment,
+        "Financials": financialsSegment,
+        "Consumer Discretionaries": consumerDiscretionarySegment,
+        "Consumer Staples": consumerStaplesSegment,
+        "Information Technology": informationTechnologySegment,
+        "Communication Services": communicationServicesSegment,
+        "Real Estate": realEstateSegment,
+        "Recovery": recoverySegment,
+        "Stay at Home": stayAtHomeSegment
+        }
 
-# COMPLETED
+        # Turn the json obj to string that front end parses
+        jsonString = json.dumps(segmentsJsonObj)
 
-
+        return jsonString
 
 
 
@@ -401,9 +763,50 @@ class marketAlgo:
 if __name__ == '__main__':
     algo = marketAlgo()
 
-    energy = algo.energySegment()
-    print("/energySegment returned: " + str(energy))
+    # energy = algo.energySegment()
+    # print("/energySegment returned: " + str(energy))
+    # print("")
+    # materials = algo.materialsSegment()
+    # print("/materialsSegment returned: " + str(materials))
+    # print("")
+    # industrials = algo.industrialsSegment()
+    # print("/industrialsSegment returned: " + str(industrials))
+    # print("")
+    # utilities = algo.utilitiesSegment()
+    # print("/utilitiesSegment returned: " + str(utilities))
+    # print("")
+    # healthCare = algo.healthcareSegment()
+    # print("/healthcareSegment returned: " + str(healthCare))
+    # print("")
+    # financials = algo.financialsSegment()
+    # print("/financialsSegment returned: " + str(financials))
+    # print("")
+    # consumerDiscretionary = algo.consumerDiscretionarySegment()
+    # print("/consumerDiscretionarySegment returned: " + str(consumerDiscretionary))
+    # print("")
+    # consumerStaples = algo.consumerStaplesSegment()
+    # print("/consumerStaplesSegment returned: " + str(consumerStaples))
+    # print("")
+    # informationTechnology = algo.informationTechnologySegment()
+    # print("/informationTechnologySegment returned: " + str(informationTechnology))
+    # print("")
+    # communicationServices = algo.communicationServicesSegment()
+    # print("/communicationServicesSegment returned: " + str(communicationServices))
+    # print("")
+    # realEstate = algo.realEstateSegment()
+    # print("/realEstateSegment returned: " + str(realEstate))
+    # print("")
+    # recovery = algo.recoverySegment()
+    # print("/recoverySegment returned: " + str(recovery))
+    # print("")
+    # stayAtHome = algo.stayAtHomeSegment()
+    # print("/stayAtHomeSegment returned: " + str(stayAtHome))
+    # print("")
+    jsonSegments = algo.jsonMarketSegments()
+    print("/jsonMarketSegments returned: ")
+    print(jsonSegments)
     print("")
+
 
 
     # print("Testing getCurrentDOW():")

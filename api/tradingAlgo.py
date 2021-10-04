@@ -1,6 +1,15 @@
 import yfinance as yf
 import yahoo_fin.stock_info as si
 import pandas as pd
+import math
+
+# Cathie Wood 6 metric scoring system:
+# Visionary Management
+# Barriers to entry
+# Market share leadership
+# Execution
+# Thesis risk and valuation
+
 
 class tradingAlgo:
     def __init__(self, symbol):
@@ -71,10 +80,16 @@ class tradingAlgo:
         # Can be a better value than pure marketCap
         enterpriseValue = self.marketCap + self.totalDebt - self.totalCash
         # print("enterpriseValue = " + str(enterpriseValue))
-        self.ev_to_ebitda = enterpriseValue / (self.stock.info['ebitda'])
+        try:
+            self.ev_to_ebitda = enterpriseValue / (self.stock.info['ebitda'])
+        except:
+            self.ev_to_ebitda = 0
         # print("ev_to_ebitda = " + str(self.ev_to_ebitda))
 
-        self.ev_to_grossProfit = enterpriseValue / self.stock.info['grossProfits']
+        try:
+            self.ev_to_grossProfit = enterpriseValue / self.stock.info['grossProfits']
+        except:
+            self.ev_to_grossProfit = 0
         # print("ev_to_grossProfit = " + str(self.ev_to_grossProfit))
 
         PePercentile = 0
@@ -131,7 +146,7 @@ class tradingAlgo:
             print("Price/earnings error: " + str(error))
         # print("PE percentile = " + str(PePercentile))
         if pd.isna(self.pe):
-            print("Found NAN")
+            # print("Found NAN")
             PePercentile = 95
 
         # Price to book compares a company's market value to its book value
@@ -544,7 +559,8 @@ class tradingAlgo:
     # Returns the percentile of growth quality looking at the stock with a 5-year time frame
     # above 70% classifies as a decent growth stock with 5 year time frame
     # This algo won't work if yahoo finance has poor 5 year growth estimates. They
-    # are sometimes abysmal
+    # are sometimes abysmal. At the time of writing this, Ford ($F), has a 5 year growth
+    # estimate of 72% per year... LOL
     # **** Fix growth companies that have negative earnings at the moment
     def growthAlgo(self):
         # Percent the company is excepted to grow at
@@ -590,14 +606,26 @@ class tradingAlgo:
         # gets total earnings for this year
         yearEarningsEstimate = estimateCurrYearEPS * sharesOutstanding
         # To get yearlyGrowthRate into percentage. If it was 50%, its now 0.5
-        yearlyGrowthRate = float(yearlyGrowthRate[0:len(yearlyGrowthRate) - 1])
-        yearlyGrowthRate = yearlyGrowthRate / 100
+
+        # if yearlyGrowthRate is a float (NaN), the above block returned no value
+        # else, yearlyGrowthRate is a string, the value is correct
+        checkVarType = isinstance(yearlyGrowthRate, str)
+        if checkVarType == False:
+            print("Next 5 Years (per annum): Not found")
+            yearlyGrowthRate = 0
+            return 0
+        else:
+            # print("yearlyGrowthRate = " + str(yearlyGrowthRate))
+            yearlyGrowthRate = float(yearlyGrowthRate[0:len(yearlyGrowthRate) - 1])
+            yearlyGrowthRate = yearlyGrowthRate / 100
         # Calculation for earnings 5 years from now, based on 50% growth
         # if growth is > 0, add it. If negative, subtract it
         if yearlyGrowthRate > 0:
             fiveYearEarnings = yearEarningsEstimate * ((1 + yearlyGrowthRate) ** 5)
         elif yearlyGrowthRate < 0:
             fiveYearEarnings = yearEarningsEstimate * ((1 - yearlyGrowthRate) ** 5)
+        else:
+            print("Error: yearlyGrowthRate not found for " + self.symbol)
 
         # EPS 5 years from now if 50% growth happens
         fiveYearEarningPerShare = fiveYearEarnings / sharesOutstanding
@@ -761,7 +789,7 @@ class tradingAlgo:
 
 # Main entry point
 if __name__ == '__main__':
-    algo = tradingAlgo("F")
+    algo = tradingAlgo("ENPH")
     # Run this with FORD and a negative earnings stock.
     #  -> fix these bugs
 
