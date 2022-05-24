@@ -1,3 +1,7 @@
+Application to extract commonly discussed company ticker symbols from the r/WallStreetBets subreddit and rank them in order of popularity. 
+
+Features a Reddit bot to extract user comments, a python back-end to process comments, and a React.js front-end to visually display content.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
